@@ -81,14 +81,16 @@ const EnrolledStudents = () => {
                 <tr>
                   <th>Student ID</th>
                   <th>Name</th>
+                  <th>Course</th>
                 </tr>
               </thead>
 
               {instructor.results.map((inst, key) => {
                 return (
                   <tr key={key} style={{ background: "white" }}>
-                    <td>{inst.studentID}</td>
-                    <td>{inst.name}</td>
+                    <td>{inst.id}</td>
+                    <td>{inst.student_name}</td>
+                    <td>{inst.course_name}</td>
                   </tr>
                 );
               })}
@@ -100,7 +102,7 @@ const EnrolledStudents = () => {
           <form
           // onSubmit={listG}
           >
-            <h1>COURSE ID:</h1>
+            <h1>COURSE NAME:</h1>
             <br></br>
             <input
               style={{ borderRadius: "10px" }}
