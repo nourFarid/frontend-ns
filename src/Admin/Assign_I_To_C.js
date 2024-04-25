@@ -120,7 +120,10 @@ instructor_id
             type="submit"
             disabled={courses.loading === true}
             onClick={() => {
-              window.location.reload(true);
+              setTimeout(() => {
+                window.location.reload(true);
+              }, 2000); // Wait for 3 seconds (3000 milliseconds)
+              
             }}
           >
             submit

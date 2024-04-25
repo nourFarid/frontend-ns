@@ -34,7 +34,7 @@ export function Header() {
             className="collapse navbar-collapse justify-content-center"
           >
             <ul className="navbar-nav">
-              {auth && auth.role == "3" && (
+              {auth && auth.role == 3 && (
                 <>
                   <Link to="/" className="nav-link">
                     Home
@@ -48,7 +48,7 @@ export function Header() {
                 </>
               )}
 
-              {auth && auth.role == "2" && (
+              {auth && auth.role == 2 && (
                 <>
                   <Link to="/" className="nav-link">
                     Home
@@ -64,12 +64,14 @@ export function Header() {
                 </>
               )}
 {/* admin */}
-              {auth && auth.role == "1" && (
+              {auth && auth.role == 1 && (
+                
                 <>
                   <Link to="/" className="nav-link">
+                    
                     Home
                   </Link>
-                  <Link to="AssigIns" className="nav-link">
+                  <Link to="/AssigIns" className="nav-link">
                     {" "}
                     Assign Instructors
                   </Link>
@@ -81,8 +83,11 @@ export function Header() {
                     {" "}
                     Manage Courses
                   </Link>
+                
                 </>
-              )}
+                
+              )
+              }
               {!auth && (
                 <>
                   <Link to="login" className="nav-link">
