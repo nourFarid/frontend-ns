@@ -8,9 +8,9 @@ import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { getAuthUser } from "../helper/Storage";
-
+const auth = getAuthUser();
 function RegisterForm() {
-  const auth = getAuthUser();
+ 
 
   const navigate = useNavigate();
   const [courses, setcourses] = useState({
@@ -32,17 +32,16 @@ instructor_id
     axios
       .post("http://localhost:4000/admin/AssignInstructor", {
         
-instructor_id
-: courses.
-instructor_id
-,
+        instructor_id: courses.instructor_id,
         name: courses.name,
-
-        headers: {
-          token: auth.token,
-          "Content-Type": "application/json",
-        },
-      })
+  },{
+    headers: {
+      authorization:`Bearer__${auth.token}`,
+      "Content-Type": "application/json",
+    },
+  }
+       
+      )
       .then((resp) => {
         setcourses({
           ...courses,
@@ -63,7 +62,7 @@ instructor_id
           loading: false,
 
           err: "Something went wrong, please try again later !",
-          // err: response.data.errors,
+      
         });
       });
   };
@@ -161,7 +160,12 @@ const ShowCourses = () => {
     setcourses({ ...courses, loading: true });
     console.log("!!!!!!!!!!!!!!!!!!!!!!!");
     axios
-      .get("http://localhost:4000/admin/listCourse")
+      .get("http://localhost:4000/admin/listCourse",{
+        headers: {
+          authorization:`Bearer__${auth.token}`,
+          "Content-Type": "application/json",
+        },
+      })
 
       .then((resp) => {
         console.log(resp);
@@ -193,7 +197,7 @@ const ShowCourses = () => {
             <tr>
               <th>ID</th>
               <th>Name</th>
-              <th>Status</th>
+            
               <th>Instructor</th>
             </tr>
           </thead>
@@ -202,7 +206,7 @@ const ShowCourses = () => {
               <tr key={key} style={{ background: "white" }}>
                 <td>{Course.id}</td>
                 <td>{Course.name}</td>
-                <td>{Course.status}</td>
+              
                 <td>{Course.instructor_id
 }</td>
               </tr>

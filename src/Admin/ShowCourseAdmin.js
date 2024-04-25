@@ -7,9 +7,10 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { getAuthUser } from "../helper/Storage";
-
+import CryptoJS from 'crypto-js';
+const auth = getAuthUser();
 function RegisterForm() {
-  const auth = getAuthUser();
+
   const navigate = useNavigate();
   const [courses, setcourses] = useState({
     name: "",
@@ -26,13 +27,13 @@ function RegisterForm() {
     axios
       .post("http://localhost:4000/admin/create", {
         name: courses.name,
-      
-        // role: inst.role,
+      },{
         headers: {
-          token: auth.token,
+          authorization:`Bearer__${auth.token}`,
           "Content-Type": "application/json",
         },
-      })
+      }
+)
       .then((resp) => {
         setcourses({
           ...courses,
@@ -41,7 +42,7 @@ function RegisterForm() {
           loading: false,
           err: [],
         });
-        // setAuthUser(resp.data);
+      
         navigate("/manageCourse");
       }, navigate("/manageCourse"))
       .catch((err) => {
@@ -66,12 +67,7 @@ function RegisterForm() {
           <h1>ADD </h1>
         </div>
         <Form.Group as={Row} className="mb-3">
-          {/* <Form.Label column sm={6} >
-          <h6>ID</h6>
-        </Form.Label>
-        <Col sm={10}>
-          <Form.Control type="text" placeholder="Course ID" />
-        </Col> */}
+       
         </Form.Group>
         <Form.Group as={Row} className="mb-3">
           <Form.Label column sm={6}>
@@ -89,19 +85,8 @@ function RegisterForm() {
           </Col>
         </Form.Group>
         <Form.Group as={Row} className="mb-3">
-          {/* <Form.Label column sm={6}>
-            <h6>Status</h6>
-          </Form.Label> */}
-          {/* <Col sm={10}>
-            <Form.Control
-              type="text"
-              placeholder="Course Status"
-              value={courses.status}
-              onChange={(e) => {
-                setcourses({ ...courses, status: e.target.value });
-              }}
-            />
-          </Col> */}
+         
+
         </Form.Group>
         <br></br>
         <div className="mb-2">
@@ -165,17 +150,24 @@ const ShowCourses = () => {
     setcourses({ ...courses, loading: true });
     console.log("!!!!!!!!!!!!!!!!!!!!!!!");
     axios
-      .get("http://localhost:4000/admin/listCourse")
+      .get("http://localhost:4000/admin/listCourse",{
+        headers: {
+          authorization:`Bearer__${auth.token}`,
+          "Content-Type": "application/json",
+        },
+      }
+)
 
       .then((resp) => {
-        console.log(resp);
-        console.log("1!!!!!!!!!!!!!!!!!!1");
         setcourses({
           ...courses,
           results: resp.data,
           loading: false,
           err: null,
         });
+        console.log('====================================');
+        console.log(resp.data);
+        console.log('====================================');
       })
       .catch((err) => {
         setcourses({
