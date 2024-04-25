@@ -7,7 +7,7 @@ import Alert from "react-bootstrap/Alert";
 import axios from "axios";
 import { getAuthUser } from "../helper/Storage";
 import { useNavigate } from "react-router-dom";
-
+ const auth = getAuthUser();
 function Alertt() {
   return (
     <div className="alertt">
@@ -28,10 +28,7 @@ function Heading() {
 }
 function RegisterForm() {
   const navigate = useNavigate();
-  const auth = getAuthUser();
-  console.log('====================================');
-  console.log(auth);
-  console.log('====================================');
+ 
 
   const [courses, setCourses] = useState({
     studentID: auth.id,
@@ -48,21 +45,23 @@ function RegisterForm() {
       .post("http://localhost:4000/student/registerCourse", {
         studentID: auth.id,
         courseID: courses.courseID,
+       
+      },{
         headers: {
-          token: auth.token,
+          authorization:`Bearer__${auth.token}`,
           "Content-Type": "application/json",
         },
-      })
+      }
+)
 
       .then((res) => {
         setCourses({
           ...courses,
-          // studentID: "",
           courseID: "",
         });
         console.log(res);
         setCourses({ ...courses, loading: false, err: [] });
-        // setAuthUser(res.data);
+      
         navigate("/register");
       }, navigate("/register"))
       .catch((err) => {
@@ -95,22 +94,7 @@ function RegisterForm() {
             <option>Summer 2022</option>
           </Form.Select>
         </Form.Group>
-        {/* <Form.Group as={Row} className="mb-3 ">
-          <Form.Label column sm={2}>
-            <h5>Student ID</h5>
-          </Form.Label>
-          <Col sm={10}>
-            <Form.Control
-              type="text"
-              placeholder="Student ID"
-              value={auth.id}
-              onChange={(e) =>
-                setCourses({ ...courses, studentID: e.target.value })
-              }
-              // required
-            />
-          </Col>
-        </Form.Group> */}
+        
         <Form.Group as={Row} className="mb-3">
           <Form.Label column sm={2}>
             <h5>Course ID</h5>

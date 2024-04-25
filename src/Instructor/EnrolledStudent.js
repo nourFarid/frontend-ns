@@ -1,12 +1,11 @@
 import Table from "react-bootstrap/Table";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
-
 import { Schedule } from "../shared/schedule";
-
 import { Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-
+import { getAuthUser } from "../helper/Storage";
+const auth = getAuthUser();
 var id = "";
 
 const Heading = () => {
@@ -42,7 +41,13 @@ const EnrolledStudents = () => {
     setInstructor({ ...instructor, loading: true });
     console.log("!!!!!!!!!!!!!!!!!!!!!!!");
     axios
-      .get(`http://localhost:4000/instructor/list/${id}`, {})
+      .get(`http://localhost:4000/instructor/list/${id}`,{
+        headers: {
+          authorization:`Bearer__${auth.token}`,
+          "Content-Type": "application/json",
+        },
+      }
+)
 
       .then((resp) => {
         console.log(resp);
@@ -100,7 +105,7 @@ const EnrolledStudents = () => {
 
         <div>
           <form
-          // onSubmit={listG}
+         
           >
             <h1>COURSE NAME:</h1>
             <br></br>
@@ -114,8 +119,7 @@ const EnrolledStudents = () => {
             <Button
               className="btn btn-dark w-100"
               variant="primary"
-              // type="submit"
-              // disabled={inst.loading === true}
+          
               onClick={listG}
             >
               submit
@@ -131,7 +135,6 @@ const EnrolledStudents = () => {
     </div>
   );
 };
-// console.log(id);
-console.log("HIIIIIIIIIIIIIIIIIIIIIIIIIIIIi");
+
 
 export default EnrolledStudents;

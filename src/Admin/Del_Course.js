@@ -7,7 +7,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 //import { CourseDetails } from "../database";
 import { useNavigate } from "react-router-dom";
-
+import { getAuthUser } from "../helper/Storage";
+const auth = getAuthUser();
 function RegisterForm() {
   const navigate = useNavigate();
 
@@ -16,25 +17,11 @@ function RegisterForm() {
       <Form style={{ width: " 500%" }} className="container">
         <div className="heading">{/* <h1>DELETE</h1> */}</div>
         <Form.Group as={Row} className="mb-3">
-          {/* <Form.Label column sm={6}>
-            <h6>ID</h6>
-          </Form.Label> */}
-          {/* <Col sm={10}>
-            <Form.Control type="text" placeholder="Course ID" />
-          </Col> */}
+      
         </Form.Group>
         <br></br>
         <div className="mb-2">
-          {/* <Button variant="primary" size="lg">
-            Submit
-          </Button>
-
-          <br />
-          <br />
-          <Button variant="secondary" size="lg" onClick={() => navigate("/")}>
-            Cancel
-          </Button> */}
-
+         
           <br />
           <br />
 
@@ -63,7 +50,12 @@ const ShowCourses = () => {
     setInstructor({ ...instructor, loading: true });
     console.log("!!!!!!!!!!!!!!!!!!!!!!!");
     axios
-      .get("http://localhost:4000/admin/listCourse")
+      .get("http://localhost:4000/admin/listCourse",{
+        headers: {
+          authorization:`Bearer__${auth.token}`,
+          "Content-Type": "application/json",
+        },
+      })
 
       .then((resp) => {
         console.log(resp);
@@ -86,7 +78,12 @@ const ShowCourses = () => {
 
   function deleteUser(id) {
     axios
-      .delete(`http://localhost:4000/admin/delete/${id}`, {})
+      .delete(`http://localhost:4000/admin/delete/${id}`, {
+        headers: {
+          authorization:`Bearer__${auth.token}`,
+          "Content-Type": "application/json",
+        },
+      })
       .then((resp) => {
         setInstructor({ ...instructor, reload: instructor.reload + 1 });
       })
@@ -106,7 +103,7 @@ const ShowCourses = () => {
             <tr>
               <th>ID</th>
               <th>Name</th>
-              <th>Status</th>
+          
               <th>Instructor</th>
               <th
                 style={{
@@ -124,7 +121,7 @@ const ShowCourses = () => {
               <tr key={key} style={{ background: "white" }}>
                 <td>{Instructors.id}</td>
                 <td>{Instructors.name}</td>
-                <td>{Instructors.status}</td>
+        
                 <td>{Instructors.instructor_id}</td>
                 <td>
                   <button
