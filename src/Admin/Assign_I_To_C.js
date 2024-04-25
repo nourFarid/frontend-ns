@@ -3,76 +3,67 @@ import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Table from "react-bootstrap/Table";
-//import { CourseDetails } from "../database";
-import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { getAuthUser } from "../helper/Storage";
 
-function RegisterForm() {
+function RegisterForm({ courses }) {
   const auth = getAuthUser();
-
   const navigate = useNavigate();
-  const [courses, setcourses] = useState({
-    name: "",
-    
-instructor_id
-: "",
-    results: [],
+  const [selectedCourse, setSelectedCourse] = useState("");
+  const [instructorId, setInstructorId] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState([]);
 
-    // role: "",
-    err: [],
-    loading: false,
-  });
   const assignInstructor = (e) => {
     e.preventDefault();
 
-    setcourses({ ...courses, loading: true, err: [] });
+    if (!selectedCourse || !instructorId) {
+      console.error("Please select a course and enter instructor ID");
+      return;
+    }
+
+    setLoading(true);
+    setErr([]);
 
     axios
-      .post("http://localhost:4000/admin/AssignInstructor", {
-        
-instructor_id
-: courses.
-instructor_id
-,
-        name: courses.name,
-
-        headers: {
-          token: auth.token,
-          "Content-Type": "application/json",
+      .post(
+        "http://localhost:4000/admin/AssignInstructor",
+        {
+          instructor_id: instructorId,
+          name: selectedCourse,
         },
-      })
+        {
+          headers: {
+            token: auth.token,
+            "Content-Type": "application/json",
+          },
+        }
+      )
       .then((resp) => {
-        setcourses({
-          ...courses,
-          
-instructor_id
-: "",
-          name: "",
-          loading: false,
-          err: [],
-        });
-
+        setLoading(false);
+        setSelectedCourse("");
+        setInstructorId("");
         console.log(resp.data);
         navigate("/AssigIns");
-      }, navigate("/AssigIns"))
+      })
       .catch((err) => {
-        setcourses({
-          ...courses,
-          loading: false,
-
-          err: "Something went wrong, please try again later !",
-          // err: response.data.errors,
-        });
+        setLoading(false);
+        setErr(["Something went wrong, please try again later!"]);
+        console.error("Error assigning instructor:", err);
       });
+  };
+
+  const handleCourseChange = (e) => {
+    setSelectedCourse(e.target.value);
   };
 
   return (
     <div>
       <Form
         onSubmit={assignInstructor}
-        style={{ width: " 500%" }}
+        style={{ width: "500px" }}
         className="container"
       >
         <div className="heading">
@@ -84,14 +75,8 @@ instructor_id
           </Form.Label>
           <Col sm={10}>
             <Form.Control
-              value={courses.
-instructor_id
-}
-              onChange={(e) => {
-                setcourses({ ...courses, 
-instructor_id
-: e.target.value });
-              }}
+              value={instructorId}
+              onChange={(e) => setInstructorId(e.target.value)}
               type="text"
               placeholder="Instructor ID"
             />
@@ -99,55 +84,42 @@ instructor_id
         </Form.Group>
         <Form.Group as={Row} className="mb-3">
           <Form.Label column sm={6}>
-            <h6>Course name</h6>
+            <h6>Course Name</h6>
           </Form.Label>
           <Col sm={10}>
-            <Form.Control
-              value={courses.name}
-              onChange={(e) => {
-                setcourses({ ...courses, name: e.target.value });
-              }}
-              type="text"
-              placeholder="Course Name"
-            />
+            <Form.Select value={selectedCourse} onChange={handleCourseChange}>
+              <option>Select Course</option>
+              {courses.map((course) => (
+                <option key={course.id} value={course.name}>
+                  {course.name}
+                </option>
+              ))}
+            </Form.Select>
           </Col>
         </Form.Group>
-        <br></br>
+        <br />
         <div className="mb-2">
           <Button
             className="btn btn-success"
             variant="primary"
             type="submit"
-            disabled={courses.loading === true}
-            onClick={() => {
-              window.location.reload(true);
-            }}
+            disabled={loading || !selectedCourse || !instructorId}
           >
-            submit
+            Submit
           </Button>
-
           <br />
           <br />
           <Button variant="secondary" onClick={() => navigate("/")}>
             Cancel
           </Button>
-
-          <br />
-          <br />
-
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
         </div>
       </Form>
     </div>
   );
 }
+
 const ShowCourses = () => {
-  const [courses, setcourses] = useState({
+  const [courses, setCourses] = useState({
     loading: true,
     results: [],
     err: null,
@@ -155,15 +127,10 @@ const ShowCourses = () => {
   });
 
   useEffect(() => {
-    setcourses({ ...courses, loading: true });
-    console.log("!!!!!!!!!!!!!!!!!!!!!!!");
     axios
       .get("http://localhost:4000/admin/listCourse")
-
       .then((resp) => {
-        console.log(resp);
-        console.log("1!!!!!!!!!!!!!!!!!!1");
-        setcourses({
+        setCourses({
           ...courses,
           results: resp.data,
           loading: false,
@@ -171,13 +138,14 @@ const ShowCourses = () => {
         });
       })
       .catch((err) => {
-        setcourses({
+        setCourses({
           ...courses,
           loading: false,
-          err: " something went wrong, please try again later ! ",
+          err: "Something went wrong, please try again later!",
         });
+        console.error("Error fetching courses:", err);
       });
-  }, [courses.reload]);
+  }, []);
 
   return (
     <div style={{ background: "lightgray" }}>
@@ -190,29 +158,26 @@ const ShowCourses = () => {
             <tr>
               <th>ID</th>
               <th>Name</th>
-              <th>Status</th>
               <th>Instructor</th>
             </tr>
           </thead>
-          {courses.results.map((Course, key) => {
-            return (
+          <tbody>
+            {courses.results.map((course, key) => (
               <tr key={key} style={{ background: "white" }}>
-                <td>{Course.id}</td>
-                <td>{Course.name}</td>
-                <td>{Course.status}</td>
-                <td>{Course.instructor_id
-}</td>
+                <td>{course.id}</td>
+                <td>{course.name}</td>
+                <td>{course.instructor_id}</td>
               </tr>
-            );
-          })}
-          <br />
-          <RegisterForm> </RegisterForm>
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
+            ))}
+          </tbody>
         </Table>
+        <br />
+        <RegisterForm courses={courses.results} />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
       </div>
     </div>
   );
