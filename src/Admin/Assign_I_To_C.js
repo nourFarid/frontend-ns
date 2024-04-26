@@ -10,13 +10,14 @@ import { useNavigate } from "react-router-dom";
 
 import { decryptData } from "../helper/encryptionAndDecryption";
 const auth = getAuthUser();
-
+var id
 function RegisterForm({ onAssign }) {
   const navigate = useNavigate();
 
   const [courses, setCourses] = useState({
     instructor_id: "",
-    selectedCourse: "", // New state to store the selected course
+    selectedCourse: "",
+    selectedCourseId: "", // New state to store the selected course
     results: [],
     err: [],
     loading: false,
@@ -57,7 +58,7 @@ function RegisterForm({ onAssign }) {
         "http://localhost:4000/admin/AssignInstructor",
         {
           instructor_id: courses.instructor_id,
-          name: courses.selectedCourse, // Use selectedCourse instead of name
+          course_id: id, // Use selectedCourse instead of name
         },
         {
           headers: {
@@ -73,6 +74,7 @@ function RegisterForm({ onAssign }) {
           selectedCourse: "", // Clear selected course
           loading: false,
           err: [],
+          selectedCourseId: "", // Clear selected course ID
         });
         navigate("/AssigIns");
         if (onAssign) {
@@ -85,6 +87,9 @@ function RegisterForm({ onAssign }) {
         }
       })
       .catch((err) => {
+        console.log('====================================');
+        console.log(courses.selectedCourseId);
+        console.log('====================================');
         setCourses({
           ...courses,
           loading: false,
@@ -123,19 +128,40 @@ function RegisterForm({ onAssign }) {
             <h6>Course</h6>
           </Form.Label>
           <Col sm={10}>
-            <Form.Select
-              value={courses.selectedCourse}
-              onChange={(e) =>
-                setCourses({ ...courses, selectedCourse: e.target.value })
-              }
-            >
-              <option value="">Select a course</option>
-              {courses.results.map((course) => (
-                <option key={course.id} value={course.name}>
-                  {course.name}
-                </option>
-              ))}
-            </Form.Select>
+          <Form.Select
+  value={courses.selectedCourseId}
+  onChange={(e) => {
+
+    const selectedCourseId = e.target.value;
+    console.log('====================================');
+    console.log(selectedCourseId);
+    console.log('====================================');
+    id=selectedCourseId;
+    const selectedCourse = courses.results.find(
+      (course) => course.id === selectedCourseId
+    );
+    if (selectedCourse) {
+      setCourses({
+        ...courses,
+        selectedCourseId,
+        selectedCourse: decryptData(selectedCourse.name, selectedCourse.iv),
+      });
+    }
+  }}
+>
+  <option value="">Select a course</option>
+  {Array.isArray(courses.results) &&
+    courses.results.map((course) => {
+      const decryptedName = decryptData(course.name, course.iv);
+
+      return (
+        <option key={course.id} value={course.id}>
+          {decryptedName}
+        </option>
+      );
+    })}
+</Form.Select>
+
           </Col>
         </Form.Group>
         <br />
@@ -227,7 +253,7 @@ const ShowCourses = () => {
             })}
             {/* Display the assigned course if it exists */}
             {assignedCourse && (
-              <tr style={{ background: "lightgreen" }}>
+              <tr >
                 <td>{assignedCourse.id}</td>
                 <td>{assignedCourse.name}</td>
                 <td>{assignedCourse.instructor_id}</td>

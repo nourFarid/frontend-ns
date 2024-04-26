@@ -4,7 +4,10 @@ import axios from "axios";
 import { Schedule } from "../shared/schedule";
 import { useNavigate } from "react-router-dom";
 import { getAuthUser } from "../helper/Storage";
+import { decryptData } from '../helper/encryptionAndDecryption';
+
   const auth = getAuthUser();
+
 
 
 
@@ -27,12 +30,9 @@ const ShowCourse = () => {
     err: null,
     reload: 0,
   });
-console.log('====================================');
-console.log(auth.id);
-console.log('====================================');
+
   useEffect(() => {
     setcourses({ ...grades, loading: true });
-    console.log("!!!!!!!!!!!!!!!!!!!!!!!");
     axios
       .get(`http://localhost:4000/student/listGrades/${auth.id}`,{
         headers: {
@@ -44,7 +44,6 @@ console.log('====================================');
 
       .then((resp) => {
         console.log(resp);
-        console.log("1!!!!!!!!!!!!!!!!!!1");
         setcourses({
           ...grades,
           results: resp.data,
@@ -84,19 +83,17 @@ console.log('====================================');
                   <th>grades</th>
                 </tr>
               </thead>
-         
               {grades.results.map((inst, key) => {
-                return (
-                  <tr key={key} style={{ background: "white" }}>
-                  
-                    <td>{inst.courseID}</td>
-                    <td>{inst.name}</td>
-                    <td>{inst.grades}</td>
+              const decryptedName = decryptData(inst.name, inst.iv);
 
-                    
-                  </tr>
-                );
-              })}
+                  return (
+                    <tr key={key} style={{ background: "white" }}>
+                      <td>{inst.courseID}</td>
+                      <td>{decryptedName}</td>
+                      <td>{inst.grades}</td>
+                    </tr>
+                  );
+                })}
             </Table>
           </div>
         </>
