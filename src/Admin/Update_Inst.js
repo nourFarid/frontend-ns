@@ -3,22 +3,18 @@ import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Table from "react-bootstrap/Table";
-import Alert from "react-bootstrap/Alert";
-import Spinner from "react-bootstrap/Spinner";
-// import { getAuthUser } from "../helper/storage";
-// import React from "react";
-//import { CourseDetails } from "../database";
+
+
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { setAuthUser } from "../helper/Storage";
-import { getAuthUser } from "../helper/Storage";
 
-function RegisterForm() {
+import { getAuthUser } from "../helper/Storage";
   const auth = getAuthUser();
+function RegisterForm() {
+
 
   const navigate = useNavigate();
-  //const auth = getAuthUser();
   const [inst, setInst] = useState({
     id: "",
     name: "",
@@ -41,19 +37,21 @@ function RegisterForm() {
         password: inst.password,
         name: inst.name,
         phone: inst.phone,
-        // role: inst.role,
+        
+      },{
         headers: {
-          token: auth.token,
+          authorization:`Bearer__${auth.token}`,
           "Content-Type": "application/json",
         },
-      })
+      }
+)
       .then((resp) => {
         setInst({
           ...inst,
           loading: false,
           err: [],
         });
-        // setAuthUser(resp.data);
+  
         navigate("/Update_Instructor");
       }, navigate("/Update_Instructor"))
       .catch((err) => {
@@ -158,27 +156,10 @@ function RegisterForm() {
         </Form.Group>
 
         <Form.Group as={Row} className="mb-3">
-          {/* <Form.Label column sm={6}> */}
-          {/* <h6>Status</h6>
-          </Form.Label>
-          <Col sm={10}>
-            <Form.Control type="text" placeholder="Instructor Status" />
-          </Col> */}
+          
         </Form.Group>
         <Form.Group as={Row} className="mb-3">
-          {/* <Form.Label column sm={6}>
-            <h6>role</h6>
-          </Form.Label>
-          <Col sm={10}>
-            <Form.Control
-              value={inst.role}
-              onChange={(e) => {
-                setInst({ ...inst, role: e.target.value });
-              }}
-              type="text"
-              placeholder="Instructor role"
-            />
-          </Col> */}
+         
         </Form.Group>
         <br></br>
         <div className="mb-2">
@@ -188,7 +169,10 @@ function RegisterForm() {
             type="submit"
             disabled={inst.loading === true}
             onClick={() => {
-              window.location.reload(true);
+              setTimeout(() => {
+                window.location.reload(true);
+              }, 2000); // Wait for 3 seconds (3000 milliseconds)
+              
             }}
           >
             update
@@ -215,12 +199,7 @@ function RegisterForm() {
           <br />
           <br />
 
-          {/* <Button
-            variant="primary"
-            onClick={() => navigate("/Update_Instructor")}
-          >
-            Update
-          </Button> */}
+          
           <br />
           <br />
           <br />
@@ -244,7 +223,13 @@ const ShowInstructors = () => {
     setInstructor({ ...instructor, loading: true });
     console.log("!!!!!!!!!!!!!!!!!!!!!!!");
     axios
-      .get("http://localhost:4000/admin/listInstructor")
+      .get("http://localhost:4000/admin/listInstructor",{
+        headers: {
+          authorization:`Bearer__${auth.token}`,
+          "Content-Type": "application/json",
+        },
+      }
+)
 
       .then((resp) => {
         console.log(resp);
@@ -276,11 +261,10 @@ const ShowInstructors = () => {
               <th>ID</th>
               <th>Name</th>
               <th>Email</th>
-              {/* <th>Password</th> */}
+              
               <th>Phone</th>
-              <th>Status</th>
-              {/* <th>Token</th> */}
-              {/* <th>Role</th> */}
+              
+        
             </tr>
           </thead>
           {instructor.results.map((Instructors, key) => {
@@ -290,10 +274,8 @@ const ShowInstructors = () => {
                 <td>{Instructors.name}</td>
                 <td>{Instructors.email}</td>
                 <td>{Instructors.phone}</td>
-                <td>{Instructors.status}</td>
-                {/* <td>{Instructors.token}</td> */}
-                {/* <td>{Instructors.role}</td> */}
-                {/* <td>{Instructors.Password}</td> */}
+             
+             
               </tr>
             );
           })}

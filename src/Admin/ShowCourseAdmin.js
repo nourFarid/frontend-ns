@@ -7,9 +7,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { getAuthUser } from "../helper/Storage";
-
+import CryptoJS from "crypto-js";
+const auth = getAuthUser();
 function RegisterForm() {
-  const auth = getAuthUser();
   const navigate = useNavigate();
   const [courses, setcourses] = useState({
     selectedCourse: "", // Store the selected course
@@ -20,7 +20,18 @@ function RegisterForm() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:4000/admin/listCourse")
+      .post(
+        "http://localhost:4000/admin/create",
+        {
+          name: courses.name,
+        },
+        {
+          headers: {
+            authorization: `Bearer__${auth.token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      )
       .then((resp) => {
         setcourses({
           ...courses,
@@ -28,7 +39,9 @@ function RegisterForm() {
           loading: false,
           err: null,
         });
-      })
+
+        navigate("/manageCourse");
+      }, navigate("/manageCourse"))
       .catch((err) => {
         setcourses({
           ...courses,
@@ -60,6 +73,7 @@ function RegisterForm() {
         <div className="heading">
           <h1>ADD </h1>
         </div>
+        <Form.Group as={Row} className="mb-3"></Form.Group>
         <Form.Group as={Row} className="mb-3">
           <Form.Label column sm={6}>
             <h6>Course Name</h6>
@@ -75,13 +89,19 @@ function RegisterForm() {
             </Form.Select>
           </Col>
         </Form.Group>
-        <br />
+        <Form.Group as={Row} className="mb-3"></Form.Group>
+        <br></br>
         <div className="mb-2">
           <Button
             className="btn btn-success"
             variant="primary"
             type="submit"
-            disabled={courses.loading || !courses.selectedCourse}
+            disabled={courses.loading === true}
+            onClick={() => {
+              setTimeout(() => {
+                window.location.reload(true);
+              }, 2000); // Wait for 3 seconds (3000 milliseconds)
+            }}
           >
             Submit
           </Button>
@@ -105,7 +125,13 @@ const ShowCourses = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:4000/admin/listCourse")
+      .get("http://localhost:4000/admin/listCourse", {
+        headers: {
+          authorization: `Bearer__${auth.token}`,
+          "Content-Type": "application/json",
+        },
+      })
+
       .then((resp) => {
         setcourses({
           ...courses,
@@ -113,6 +139,9 @@ const ShowCourses = () => {
           loading: false,
           err: null,
         });
+        console.log("====================================");
+        console.log(resp.data);
+        console.log("====================================");
       })
       .catch((err) => {
         setcourses({

@@ -1,89 +1,32 @@
 import Button from "react-bootstrap/Button";
-import Col from "react-bootstrap/Col";
+
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Table from "react-bootstrap/Table";
-// import { useNavigate } from "react-router-dom";
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-// import { CourseDetails } from "../database";
-import { useNavigate } from "react-router-dom";
-import { setAuthUser } from "../helper/Storage";
-import Alert from "react-bootstrap/Alert";
 
+import React, { useEffect, useState } from "react";
+import axios from "axios";import { useNavigate } from "react-router-dom";
+
+import { getAuthUser } from "../helper/Storage";
+const auth = getAuthUser();
 function RegisterForm() {
   const navigate = useNavigate();
-  // const [inst, setinst] = useState({
-  //   id: "",
-  // });
-  // const instFun = (e) => {
-  //   e.preventDefault();
-  //   console.log(inst);
-  //   // setinst({ ...inst, id: inst.id });
-  //   axios
-  //     .delete("http://localhost:4000/admin/deleteInstructor", {
-  //       id: inst.id,
-  //     })
-  //     .then((resp) => {
-  //       // setinst({ ...inst, loading: false, err: [] });
-  //       setAuthUser(resp.data);
-  //       navigate("/");
-  //     })
-  //     .catch((errors) => {
-  //       console.log(errors);
-  //     });
-  // };
+  
   return (
     <div>
-      {/* {inst.err.map((error, index) => (
-        <Alert key={index} variant="danger" className="p-2">
-          {error.msg}
-        </Alert>
-      ))} */}
+
       <Form
-        // onSubmit={instFun}
         style={{ width: " 500%" }}
         className="container"
       >
-        {/* <div className="heading">
-          <h1>DELETE</h1>
-        </div> */}
+       
         <Form.Group as={Row} className="mb-3">
-          {/* <Form.Label column sm={6}>
-            <h6>ID</h6>
-          </Form.Label> */}
-          {/* <Col sm={10}>
-            <Form.Control
-              // value={inst.id}
-              // onChange={(e) => {
-              //   setinst({ ...inst, id: e.target.value });
-              //   console.log(e.target.value);
-              // }}
-              type="text"
-              placeholder="Instructor ID"
-            />
-          </Col> */}
+        
         </Form.Group>
 
-        {/* <br></br> */}
+   
         <div className="mb-2">
-          {/* <Button
-            className="btn btn-dark w-100"
-            variant="primary"
-            type="submit"
-            // disabled={inst.loading === true
-            // }
-          >
-            submit
-          </Button>
-
-          <br />
-          <br />
-          <Button variant="secondary" size="lg" onClick={() => navigate("/")}>
-            Cancel
-          </Button> */}
-          {/* <br />
-          <br /> */}
+          
           <Button variant="primary" onClick={() => navigate("/Add_Instructor")}>
             Add and Update
           </Button>
@@ -110,7 +53,13 @@ const ShowInstructors = () => {
     setInstructor({ ...instructor, loading: true });
     console.log("!!!!!!!!!!!!!!!!!!!!!!!");
     axios
-      .get("http://localhost:4000/admin/listInstructor")
+      .get("http://localhost:4000/admin/listInstructor",{
+        headers: {
+          authorization:`Bearer__${auth.token}`,
+          "Content-Type": "application/json",
+        },
+      }
+)
 
       .then((resp) => {
         console.log(resp);
@@ -133,7 +82,13 @@ const ShowInstructors = () => {
 
   function deleteUser(id) {
     axios
-      .delete(`http://localhost:4000/admin/deleteInstructor/${id}`, {})
+      .delete(`http://localhost:4000/admin/deleteInstructor/${id}`, {
+        headers: {
+          authorization:`Bearer__${auth.token}`,
+          "Content-Type": "application/json",
+        },
+      }
+)
       .then((resp) => {
         setInstructor({ ...instructor, reload: instructor.reload + 1 });
       })
@@ -158,7 +113,7 @@ const ShowInstructors = () => {
               <th>Email</th>
               {/* <th>Password</th> */}
               <th>Phone</th>
-              <th>Status</th>
+           
               <th
                 style={{
                   //   background: "rgb(185, 40, 40)",
@@ -168,9 +123,7 @@ const ShowInstructors = () => {
               >
                 action
               </th>
-              {/*
-              {/* <th>Token</th>
-              <th>Role</th> */}
+          
             </tr>
           </thead>
           {instructor.results.map((Instructors, key) => {
@@ -180,7 +133,7 @@ const ShowInstructors = () => {
                 <td>{Instructors.name}</td>
                 <td>{Instructors.email}</td>
                 <td>{Instructors.phone}</td>
-                <td>{Instructors.status}</td>
+               
                 <td>
                   <button
                     style={{
@@ -192,9 +145,7 @@ const ShowInstructors = () => {
                     delete
                   </button>
                 </td>
-                {/* <td>{val.creditHours}</td>
-                <td>{val.title}</td>
-                <td>{val.grade}</td> */}
+              
               </tr>
             );
           })}

@@ -6,7 +6,8 @@ import React from "react";
 import Alert from "react-bootstrap/Alert";
 import { useState } from "react";
 import axios from "axios";
-import { setAuthUser } from "../helper/Storage";
+import { getAuthUser } from "../helper/Storage";
+const auth = getAuthUser();
 function Alertt() {
   return (
     <div className="alertt text-black">
@@ -29,15 +30,7 @@ function Heading() {
 }
 
 function AssignGrades() {
-  // const header = {
-  //   // 'Authorization' : "Bearer " + "c8dcbae90fa60d2a48b3a071a5749528" ,
-  //   // "Content=Type" : "application/json"
-  //   'token' : 'c8dcbae90fa60d2a48b3a071a5749528'
-  // };
-  // const token = 'db5e75ed20ce262a43da230cf692a1a5' ;
-  // const headers = {
-  //     'token': token };
-  const [grades, setgrades] = useState({
+ const [grades, setgrades] = useState({
     grade: "",
     studentID: "",
     courseID: "",
@@ -54,7 +47,14 @@ function AssignGrades() {
         grade: grades.grade,
         studentID: grades.studentID,
         courseID: grades.courseID,
-      })
+      },
+      {
+                headers: {
+                  authorization:`Bearer__${auth.token}`,
+                  "Content-Type": "application/json",
+                },
+              }
+      )
       .then((res) => {
         console.log(res);
         setgrades({ ...grades, loading: false, err: [] });
@@ -136,7 +136,10 @@ function AssignGrades() {
             size="lg"
             type="submit"
             onClick={() => {
-              window.location.reload(true);
+              setTimeout(() => {
+                window.location.reload(true);
+              }, 2000); // Wait for 3 seconds (3000 milliseconds)
+              
             }}
           >
             Register

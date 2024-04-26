@@ -4,18 +4,16 @@ import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Table from "react-bootstrap/Table";
 import React, { useEffect, useState } from "react";
-//import { CourseDetails } from "../database";
+
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { getAuthUser } from "../helper/Storage";
+  const auth = getAuthUser();
 function RegisterForm() {
   const navigate = useNavigate();
-  const auth = getAuthUser();
   const [courses, setcourses] = useState({
     id: "",
     name: "",
-    // status: "",
-    // role: "",
     err: [],
     loading: false,
   });
@@ -28,19 +26,20 @@ function RegisterForm() {
       .put("http://localhost:4000/admin/updateourse", {
         id: courses.id,
         name: courses.name,
-        // status: courses.status,
+
+      },{
         headers: {
-          token: auth.token,
+          authorization:`Bearer__${auth.token}`,
           "Content-Type": "application/json",
         },
-      })
+      }
+)
       .then((resp) => {
         setcourses({
           ...courses,
           loading: false,
           err: [],
-        });
-        // setAuthUser(resp.data);
+        })
         navigate("/Update_Course");
       }, navigate("/Update_Course"))
       .catch((err) => {
@@ -103,18 +102,9 @@ function RegisterForm() {
         </Form.Group>
         <Form.Group as={Row} className="mb-3">
           <Form.Label column sm={6}>
-            {/* <h6>Status</h6> */}
+           
           </Form.Label>
-          {/* <Col sm={10}>
-            <Form.Control
-              value={courses.status}
-              onChange={(e) => {
-                setcourses({ ...courses, status: e.target.value });
-              }}
-              type="text"
-              placeholder="Course Status"
-            />
-          </Col> */}
+          
         </Form.Group>
         <br></br>
         <div className="mb-2">
@@ -124,7 +114,10 @@ function RegisterForm() {
             type="submit"
             disabled={courses.loading === true}
             onClick={() => {
-              window.location.reload(true);
+              setTimeout(() => {
+                window.location.reload(true);
+              }, 2000); // Wait for 3 seconds (3000 milliseconds)
+              
             }}
           >
             update
@@ -169,7 +162,13 @@ const Update_Course = () => {
     setcourses({ ...courses, loading: true });
     console.log("!!!!!!!!!!!!!!!!!!!!!!!");
     axios
-      .get("http://localhost:4000/admin/listCourse")
+      .get("http://localhost:4000/admin/listCourse",{
+        headers: {
+          authorization:`Bearer__${auth.token}`,
+          "Content-Type": "application/json",
+        },
+      }
+)
 
       .then((resp) => {
         console.log(resp);
@@ -201,7 +200,7 @@ const Update_Course = () => {
             <tr>
               <th>ID</th>
               <th>Name</th>
-              {/* <th>Status</th> */}
+             
               <th>Instructor</th>
             </tr>
           </thead>
@@ -210,7 +209,7 @@ const Update_Course = () => {
               <tr key={key} style={{ background: "white" }}>
                 <td>{Course.id}</td>
                 <td>{Course.name}</td>
-                {/* <td>{Course.status}</td> */}
+    
                 <td>{Course.instructor_id}</td>
               </tr>
             );

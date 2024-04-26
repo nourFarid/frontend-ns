@@ -7,9 +7,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { getAuthUser } from "../helper/Storage";
-
-function RegisterForm({ courses }) {
-  const auth = getAuthUser();
+const auth = getAuthUser();
+function RegisterForm() {
   const navigate = useNavigate();
   const [selectedCourse, setSelectedCourse] = useState("");
   const [instructorId, setInstructorId] = useState("");
@@ -31,12 +30,12 @@ function RegisterForm({ courses }) {
       .post(
         "http://localhost:4000/admin/AssignInstructor",
         {
-          instructor_id: instructorId,
-          name: selectedCourse,
+          instructor_id: courses.instructor_id,
+          name: courses.name,
         },
         {
           headers: {
-            token: auth.token,
+            authorization: `Bearer__${auth.token}`,
             "Content-Type": "application/json",
           },
         }
@@ -49,9 +48,12 @@ function RegisterForm({ courses }) {
         navigate("/AssigIns");
       })
       .catch((err) => {
-        setLoading(false);
-        setErr(["Something went wrong, please try again later!"]);
-        console.error("Error assigning instructor:", err);
+        setcourses({
+          ...courses,
+          loading: false,
+
+          err: "Something went wrong, please try again later !",
+        });
       });
   };
 
@@ -103,7 +105,12 @@ function RegisterForm({ courses }) {
             className="btn btn-success"
             variant="primary"
             type="submit"
-            disabled={loading || !selectedCourse || !instructorId}
+            disabled={courses.loading === true}
+            onClick={() => {
+              setTimeout(() => {
+                window.location.reload(true);
+              }, 2000); // Wait for 3 seconds (3000 milliseconds)
+            }}
           >
             Submit
           </Button>
@@ -128,7 +135,13 @@ const ShowCourses = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:4000/admin/listCourse")
+      .get("http://localhost:4000/admin/listCourse", {
+        headers: {
+          authorization: `Bearer__${auth.token}`,
+          "Content-Type": "application/json",
+        },
+      })
+
       .then((resp) => {
         setCourses({
           ...courses,
@@ -158,15 +171,17 @@ const ShowCourses = () => {
             <tr>
               <th>ID</th>
               <th>Name</th>
+
               <th>Instructor</th>
             </tr>
           </thead>
           <tbody>
             {courses.results.map((course, key) => (
               <tr key={key} style={{ background: "white" }}>
-                <td>{course.id}</td>
-                <td>{course.name}</td>
-                <td>{course.instructor_id}</td>
+                <td>{Course.id}</td>
+                <td>{Course.name}</td>
+
+                <td>{Course.instructor_id}</td>
               </tr>
             ))}
           </tbody>
