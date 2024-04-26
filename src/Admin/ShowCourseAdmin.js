@@ -8,6 +8,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { getAuthUser } from "../helper/Storage";
 import CryptoJS from 'crypto-js';
+import { decryptData } from '../helper/encryptionAndDecryption';
+
 const auth = getAuthUser();
 function RegisterForm() {
 
@@ -193,15 +195,17 @@ const ShowCourses = () => {
             </tr>
           </thead>
           {courses.results.map((Course, key) => {
-            return (
-              <tr key={key} style={{ background: "white" }}>
-                <td>{Course.id}</td>
-                <td>{Course.name}</td>
-               
-                <td>{Course.instructor_id}</td>
-              </tr>
-            );
-          })}
+    const decryptedName = decryptData(Course.name, Course.iv);
+    return (
+        <tr key={key} style={{ background: "white" }}>
+            <td>{Course.id}</td>
+            <td>{decryptedName}</td>
+           
+            <td>{Course.instructor_id}</td>
+        </tr>
+    );
+})}
+
           <br />
           <RegisterForm> </RegisterForm>
           <br />
@@ -216,3 +220,4 @@ const ShowCourses = () => {
 };
 
 export default ShowCourses;
+// nouuuuur
