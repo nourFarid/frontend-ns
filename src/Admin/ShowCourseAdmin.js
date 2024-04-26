@@ -7,16 +7,15 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { getAuthUser } from "../helper/Storage";
-import CryptoJS from 'crypto-js';
-import { decryptData } from '../helper/encryptionAndDecryption';
+import CryptoJS from "crypto-js";
+import { decryptData } from "../helper/encryptionAndDecryption";
 
 const auth = getAuthUser();
 function RegisterForm() {
-
   const navigate = useNavigate();
   const [courses, setcourses] = useState({
     name: "",
-    
+
     // role: "",
     err: [],
     loading: false,
@@ -27,24 +26,27 @@ function RegisterForm() {
     setcourses({ ...courses, loading: true, err: [] });
 
     axios
-      .post("http://localhost:4000/admin/create", {
-        name: courses.name,
-      },{
-        headers: {
-          authorization:`Bearer__${auth.token}`,
-          "Content-Type": "application/json",
+      .post(
+        "http://localhost:4000/admin/create",
+        {
+          name: courses.name,
         },
-      }
-)
+        {
+          headers: {
+            authorization: `Bearer__${auth.token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      )
       .then((resp) => {
         setcourses({
           ...courses,
           name: "",
-         
+
           loading: false,
           err: [],
         });
-      
+
         navigate("/manageCourse");
       }, navigate("/manageCourse"))
       .catch((err) => {
@@ -68,9 +70,7 @@ function RegisterForm() {
         <div className="heading">
           <h1>ADD </h1>
         </div>
-        <Form.Group as={Row} className="mb-3">
-       
-        </Form.Group>
+        <Form.Group as={Row} className="mb-3"></Form.Group>
         <Form.Group as={Row} className="mb-3">
           <Form.Label column sm={6}>
             <h6>Name</h6>
@@ -86,10 +86,7 @@ function RegisterForm() {
             />
           </Col>
         </Form.Group>
-        <Form.Group as={Row} className="mb-3">
-         
-
-        </Form.Group>
+        <Form.Group as={Row} className="mb-3"></Form.Group>
         <br></br>
         <div className="mb-2">
           <Button
@@ -101,7 +98,6 @@ function RegisterForm() {
               setTimeout(() => {
                 window.location.reload(true);
               }, 2000); // Wait for 3 seconds (3000 milliseconds)
-              
             }}
           >
             submit
@@ -152,13 +148,12 @@ const ShowCourses = () => {
     setcourses({ ...courses, loading: true });
     console.log("!!!!!!!!!!!!!!!!!!!!!!!");
     axios
-      .get("http://localhost:4000/admin/listCourse",{
+      .get("http://localhost:4000/admin/listCourse", {
         headers: {
-          authorization:`Bearer__${auth.token}`,
+          authorization: `Bearer__${auth.token}`,
           "Content-Type": "application/json",
         },
-      }
-)
+      })
 
       .then((resp) => {
         setcourses({
@@ -167,9 +162,9 @@ const ShowCourses = () => {
           loading: false,
           err: null,
         });
-        console.log('====================================');
+        console.log("====================================");
         console.log(resp.data);
-        console.log('====================================');
+        console.log("====================================");
       })
       .catch((err) => {
         setcourses({
@@ -190,21 +185,21 @@ const ShowCourses = () => {
             <tr>
               <th>ID</th>
               <th>Name</th>
-             
+
               <th>Instructor</th>
             </tr>
           </thead>
           {courses.results.map((Course, key) => {
-    const decryptedName = decryptData(Course.name, Course.iv);
-    return (
-        <tr key={key} style={{ background: "white" }}>
-            <td>{Course.id}</td>
-            <td>{decryptedName}</td>
-           
-            <td>{Course.instructor_id}</td>
-        </tr>
-    );
-})}
+            const decryptedName = decryptData(Course.name, Course.iv);
+            return (
+              <tr key={key} style={{ background: "white" }}>
+                <td>{Course.id}</td>
+                <td>{decryptedName}</td>
+
+                <td>{Course.instructor_id}</td>
+              </tr>
+            );
+          })}
 
           <br />
           <RegisterForm> </RegisterForm>

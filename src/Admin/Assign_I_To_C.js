@@ -3,67 +3,92 @@ import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Table from "react-bootstrap/Table";
-//import { CourseDetails } from "../database";
-import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { getAuthUser } from "../helper/Storage";
-import { decryptData } from '../helper/encryptionAndDecryption';
+import { useNavigate } from "react-router-dom";
+
+import { decryptData } from "../helper/encryptionAndDecryption";
 const auth = getAuthUser();
-function RegisterForm() {
- 
 
+function RegisterForm({ onAssign }) {
   const navigate = useNavigate();
-  const [courses, setcourses] = useState({
-    name: "",
-    
-instructor_id
-: "",
-    results: [],
 
-    // role: "",
+  const [courses, setCourses] = useState({
+    instructor_id: "",
+    selectedCourse: "", // New state to store the selected course
+    results: [],
     err: [],
     loading: false,
   });
+
+  // Fetch courses from the backend
+  useEffect(() => {
+    axios
+      .get("http://localhost:4000/admin/listCourse", {
+        headers: {
+          authorization: `Bearer__${auth.token}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then((resp) => {
+        setCourses({
+          ...courses,
+          results: resp.data,
+          loading: false,
+          err: null,
+        });
+      })
+      .catch((err) => {
+        setCourses({
+          ...courses,
+          loading: false,
+          err: "Something went wrong, please try again later!",
+        });
+      });
+  }, []);
+
   const assignInstructor = (e) => {
     e.preventDefault();
-
-    setcourses({ ...courses, loading: true, err: [] });
+    setCourses({ ...courses, loading: true, err: [] });
 
     axios
-      .post("http://localhost:4000/admin/AssignInstructor", {
-        
-        instructor_id: courses.instructor_id,
-        name: courses.name,
-  },{
-    headers: {
-      authorization:`Bearer__${auth.token}`,
-      "Content-Type": "application/json",
-    },
-  }
-       
+      .post(
+        "http://localhost:4000/admin/AssignInstructor",
+        {
+          instructor_id: courses.instructor_id,
+          name: courses.selectedCourse, // Use selectedCourse instead of name
+        },
+        {
+          headers: {
+            authorization: `Bearer__${auth.token}`,
+            "Content-Type": "application/json",
+          },
+        }
       )
       .then((resp) => {
-        setcourses({
+        setCourses({
           ...courses,
-          
-instructor_id
-: "",
-          name: "",
+          instructor_id: "",
+          selectedCourse: "", // Clear selected course
           loading: false,
           err: [],
         });
-
-        console.log(resp.data);
         navigate("/AssigIns");
-      }, navigate("/AssigIns"))
+        if (onAssign) {
+          // Call the onAssign callback with the assigned course
+          onAssign({
+            id: resp.data.id,
+            name: resp.data.name,
+            instructor_id: resp.data.instructor_id,
+          });
+        }
+      })
       .catch((err) => {
-        setcourses({
+        setCourses({
           ...courses,
           loading: false,
-
-          err: "Something went wrong, please try again later !",
-      
+          err: "Something went wrong, please try again later!",
         });
       });
   };
@@ -72,7 +97,7 @@ instructor_id
     <div>
       <Form
         onSubmit={assignInstructor}
-        style={{ width: " 500%" }}
+        style={{ width: "500%" }}
         className="container"
       >
         <div className="heading">
@@ -84,14 +109,10 @@ instructor_id
           </Form.Label>
           <Col sm={10}>
             <Form.Control
-              value={courses.
-instructor_id
-}
-              onChange={(e) => {
-                setcourses({ ...courses, 
-instructor_id
-: e.target.value });
-              }}
+              value={courses.instructor_id}
+              onChange={(e) =>
+                setCourses({ ...courses, instructor_id: e.target.value })
+              }
               type="text"
               placeholder="Instructor ID"
             />
@@ -99,79 +120,65 @@ instructor_id
         </Form.Group>
         <Form.Group as={Row} className="mb-3">
           <Form.Label column sm={6}>
-            <h6>Course name</h6>
+            <h6>Course</h6>
           </Form.Label>
           <Col sm={10}>
-            <Form.Control
-              value={courses.name}
-              onChange={(e) => {
-                setcourses({ ...courses, name: e.target.value });
-              }}
-              type="text"
-              placeholder="Course Name"
-            />
+            <Form.Select
+              value={courses.selectedCourse}
+              onChange={(e) =>
+                setCourses({ ...courses, selectedCourse: e.target.value })
+              }
+            >
+              <option value="">Select a course</option>
+              {courses.results.map((course) => (
+                <option key={course.id} value={course.name}>
+                  {course.name}
+                </option>
+              ))}
+            </Form.Select>
           </Col>
         </Form.Group>
-        <br></br>
+        <br />
         <div className="mb-2">
           <Button
             className="btn btn-success"
             variant="primary"
             type="submit"
-            disabled={courses.loading === true}
-            onClick={() => {
-              setTimeout(() => {
-                window.location.reload(true);
-              }, 2000); // Wait for 3 seconds (3000 milliseconds)
-              
-            }}
+            disabled={courses.loading}
           >
-            submit
+            {courses.loading ? "Submitting..." : "Submit"}
           </Button>
-
           <br />
           <br />
           <Button variant="secondary" onClick={() => navigate("/")}>
             Cancel
           </Button>
-
-          <br />
-          <br />
-
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
         </div>
       </Form>
     </div>
   );
 }
+
 const ShowCourses = () => {
-  const [courses, setcourses] = useState({
+  const [courses, setCourses] = useState({
     loading: true,
     results: [],
     err: null,
     reload: 0,
   });
+  const [assignedCourse, setAssignedCourse] = useState(null); // State to store the assigned course
 
   useEffect(() => {
-    setcourses({ ...courses, loading: true });
-
+    setCourses({ ...courses, loading: true });
     axios
-      .get("http://localhost:4000/admin/listCourse",{
+      .get("http://localhost:4000/admin/listCourse", {
         headers: {
-          authorization:`Bearer__${auth.token}`,
+          authorization: `Bearer__${auth.token}`,
           "Content-Type": "application/json",
         },
       })
-
       .then((resp) => {
-        console.log(resp);
-    
-        setcourses({
+        setCourses({
           ...courses,
           results: resp.data,
           loading: false,
@@ -179,13 +186,19 @@ const ShowCourses = () => {
         });
       })
       .catch((err) => {
-        setcourses({
+        setCourses({
           ...courses,
           loading: false,
-          err: " something went wrong, please try again later ! ",
+          err: "Something went wrong, please try again later!",
         });
       });
   }, [courses.reload]);
+
+  // Function to handle course assignment
+  const handleAssignCourse = (course) => {
+    setAssignedCourse(course); // Set the assigned course
+    setCourses({ ...courses, reload: courses.reload + 1 }); // Trigger reloading the courses
+  };
 
   return (
     <div style={{ background: "lightgray" }}>
@@ -198,33 +211,37 @@ const ShowCourses = () => {
             <tr>
               <th>ID</th>
               <th>Name</th>
-            
               <th>Instructor</th>
             </tr>
           </thead>
-          {courses.results.map((Course, key) => {
-            const decryptedName = decryptData(Course.name, Course.iv);
-            return (
-              <tr key={key} style={{ background: "white" }}>
-                <td>{Course.id}</td>
-                <td>{decryptedName}</td>
-              
-                <td>{Course.instructor_id
-}</td>
+          <tbody>
+            {courses.results.map((Course, key) => {
+              const decryptedName = decryptData(Course.name, Course.iv);
+              return (
+                <tr key={key} style={{ background: "white" }}>
+                  <td>{Course.id}</td>
+                  <td>{decryptedName}</td>
+                  <td>{Course.instructor_id}</td>
+                </tr>
+              );
+            })}
+            {/* Display the assigned course if it exists */}
+            {assignedCourse && (
+              <tr style={{ background: "lightgreen" }}>
+                <td>{assignedCourse.id}</td>
+                <td>{assignedCourse.name}</td>
+                <td>{assignedCourse.instructor_id}</td>
               </tr>
-            );
-          })}
-          <br />
-          <RegisterForm> </RegisterForm>
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
+            )}
+          </tbody>
         </Table>
+        <RegisterForm onAssign={handleAssignCourse} />
+        <br />
+        <br />
       </div>
     </div>
   );
 };
 
 export default ShowCourses;
+// OMAR

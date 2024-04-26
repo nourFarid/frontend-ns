@@ -1,11 +1,12 @@
 import Table from "react-bootstrap/Table";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Schedule } from "../shared/schedule";
-import { Button } from "react-bootstrap";
+import { Button, Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { getAuthUser } from "../helper/Storage";
-const auth = getAuthUser();
+// import { getAuthUser } from "../helper/Storage";
+import { Schedule } from "../shared/schedule";
+
+// const auth = getAuthUser();
 var id = "";
 
 const Heading = () => {
@@ -18,55 +19,74 @@ const Heading = () => {
 
 const EnrolledStudents = () => {
   const navigate = useNavigate();
-  const [data, setData] = useState({
-    id: id,
-  });
-  function getData(val) {
-    setData(val.target.value);
-    id = val.target.value;
-
-    console.warn(val.target.value);
-  }
-
-  console.log("id:" + id);
-
-  const [instructor, setInstructor] = useState({
+  const [courses, setCourses] = useState({
     loading: true,
     results: [],
     err: null,
-    reload: 0,
   });
 
-  const listG = () => {
-    setInstructor({ ...instructor, loading: true });
-    console.log("!!!!!!!!!!!!!!!!!!!!!!!");
+  const [selectedCourse, setSelectedCourse] = useState("");
+  const [selectedCourseName, setSelectedCourseName] = useState(""); // State to store selected course name
+
+  useEffect(() => {
     axios
-      .get(`http://localhost:4000/instructor/list/${id}`,{
-        headers: {
-          authorization:`Bearer__${auth.token}`,
-          "Content-Type": "application/json",
-        },
-      }
-)
-
+      .get("http://localhost:4000/admin/listCourse")
       .then((resp) => {
-        console.log(resp);
-        console.log("1!!!!!!!!!!!!!!!!!!1");
-        setInstructor({
-          ...instructor,
-          results: resp.data,
-
+        setCourses({
+          loading: false,
+          results: resp.data || [],
           err: null,
         });
       })
       .catch((err) => {
-        setInstructor({
-          ...instructor,
+        setCourses({
+          loading: false,
+          results: [],
+          err: "Something went wrong, please try again later!",
+        });
+      });
+  }, []);
 
-          err: " something went wrong, please try again later ! ",
+  const [instructor, setInstructor] = useState({
+    loading: false,
+    results: [],
+    err: null,
+  });
+
+  const listG = () => {
+    setInstructor({ loading: true });
+    axios
+      .get(`http://localhost:4000/instructor/list/${selectedCourse}`, {
+        // headers: {
+        //   Authorization: `Bearer__${auth.token}`,
+        //   "Content-Type": "application/json",
+        // },
+      })
+      .then((resp) => {
+        setInstructor({
+          loading: false,
+          results: resp.data || [],
+          err: null,
+        });
+        console.log(resp);
+      })
+      .catch((err) => {
+        setInstructor({
+          loading: false,
+          results: [],
+          err: "Something went wrong, please try again later!",
         });
       });
   };
+
+  const handleCourseChange = (event) => {
+    const selectedCourseId = event.target.value;
+    const selectedCourseName =
+      event.target.options[event.target.selectedIndex].text; // Extract course name from selected option
+    setSelectedCourse(selectedCourseId);
+    setSelectedCourseName(selectedCourseName);
+  };
+
   return (
     <div
       style={{
@@ -76,8 +96,6 @@ const EnrolledStudents = () => {
     >
       <div className="container bn-3 p-3">
         <Heading />
-
-        <div className=" p-3"></div>
 
         <>
           <div>
@@ -90,51 +108,57 @@ const EnrolledStudents = () => {
                 </tr>
               </thead>
 
-              {instructor.results.map((inst, key) => {
-                return (
+              {instructor.loading ? (
+                <tr>
+                  <td colSpan="3">Loading...</td>
+                </tr>
+              ) : instructor.results.length === 0 ? (
+                <tr>
+                  <td colSpan="3">No data available</td>
+                </tr>
+              ) : (
+                instructor.results.map((inst, key) => (
                   <tr key={key} style={{ background: "white" }}>
                     <td>{inst.id}</td>
                     <td>{inst.student_name}</td>
-                    <td>{inst.course_name}</td>
+                    <td>{selectedCourseName || "No course selected"}</td>
                   </tr>
-                );
-              })}
+                ))
+              )}
             </Table>
           </div>
         </>
 
         <div>
-          <form
-         
-          >
-            <h1>COURSE NAME:</h1>
-            <br></br>
-            <input
-              style={{ borderRadius: "10px" }}
-              type="text"
-              onChange={getData}
-            ></input>
-            <br></br>
-            <br></br>
+          <Form>
+            <Form.Group controlId="courseSelect">
+              <Form.Label>COURSE NAME:</Form.Label>
+              <Form.Select value={selectedCourse} onChange={handleCourseChange}>
+                <option value="">Select a course</option>
+                {courses.results &&
+                  courses.results.map((course) => (
+                    <option key={course.id} value={course.id}>
+                      {course.name}
+                    </option>
+                  ))}
+              </Form.Select>
+            </Form.Group>
             <Button
               className="btn btn-dark w-100"
               variant="primary"
-          
               onClick={listG}
             >
-              submit
+              Submit
             </Button>
-          </form>
+          </Form>
         </div>
 
         <div className="g-3 p-5">
           <Schedule />
         </div>
-        <div></div>
       </div>
     </div>
   );
 };
-
 
 export default EnrolledStudents;

@@ -1,67 +1,82 @@
+import React, { useState, useEffect } from "react";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
-import React from "react";
 import Alert from "react-bootstrap/Alert";
-import { useState } from "react";
 import axios from "axios";
-import { getAuthUser } from "../helper/Storage";
-const auth = getAuthUser();
-function Alertt() {
-  return (
-    <div className="alertt text-black">
-      {["warning"].map((variant) => (
-        <Alert className="text-black" key={variant} variant={variant}>
-          Enter the grade of your students
-        </Alert>
-      ))}
-    </div>
-  );
-}
-function Heading() {
-  return (
-    <>
-      <div className="heading">
-        <h1>the grade of your students</h1>
-      </div>
-    </>
-  );
-}
 
 function AssignGrades() {
- const [grades, setgrades] = useState({
+  const [grades, setGrades] = useState({
     grade: "",
     studentID: "",
-    courseID: "",
+    courseID: "", // Changed to courseID
     err: [],
     loading: false,
   });
+  const [courses, setCourses] = useState({
+    selectedCourse: "", // New state to store the selected course
+    results: [],
+    err: [],
+    loading: false,
+  });
+  const [courseNames, setCourseNames] = useState([]); // State to store course names
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:4000/admin/listCourse")
+      .then((resp) => {
+        setCourses({
+          ...courses,
+          results: resp.data,
+          loading: false,
+          err: null,
+        });
+      })
+      .catch((err) => {
+        setCourses({
+          ...courses,
+          loading: false,
+          err: "Something went wrong, please try again later!",
+        });
+      });
+  }, []);
 
   const handleRegister = (e) => {
     e.preventDefault();
-    setgrades({ ...grades, loading: true, err: [] });
+    setGrades({ ...grades, loading: true, err: [] });
     console.log(grades);
     axios
-      .post("http://localhost:4000/instructor/assignGrades", {
-        grade: grades.grade,
-        studentID: grades.studentID,
-        courseID: grades.courseID,
-      },
-      {
-                headers: {
-                  authorization:`Bearer__${auth.token}`,
-                  "Content-Type": "application/json",
-                },
-              }
+      .post(
+        "http://localhost:4000/instructor/assignGrades",
+        {
+          grade: grades.grade,
+          studentID: grades.studentID,
+          courseID: grades.courseID, // Changed to courseID
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       )
       .then((res) => {
         console.log(res);
-        setgrades({ ...grades, loading: false, err: [] });
+        setGrades({ ...grades, loading: false, err: [] });
       })
       .catch((err) => {
-        setgrades({ ...grades, loading: false, err: "No grades available" });
+        setGrades({ ...grades, loading: false, err: "No grades available" });
       });
+  };
+
+  const handleCourseChange = (e) => {
+    const selectedCourse = e.target.value;
+    const correspondingCourse = courses.results.find(
+      (course) => course.name === selectedCourse
+    );
+    if (correspondingCourse) {
+      setGrades({ ...grades, courseID: correspondingCourse.id });
+    }
   };
 
   return (
@@ -71,11 +86,13 @@ function AssignGrades() {
         className="container  g-4 p-5"
         onSubmit={handleRegister}
       >
-        <Heading />
-        <Alertt />
+        <div className="heading">
+          <h1>Assign Grades</h1>
+        </div>
+        <Alert variant="warning">Enter the grade of your students</Alert>
         <Form.Group className="mb-3">
           <Form.Label>
-            <h5>Choose Semster</h5>
+            <h5>Choose Semester</h5>
           </Form.Label>
           <Form.Select>
             <option>select</option>
@@ -94,7 +111,7 @@ function AssignGrades() {
               placeholder="Student ID"
               value={grades.studentID}
               onChange={(e) =>
-                setgrades({ ...grades, studentID: e.target.value })
+                setGrades({ ...grades, studentID: e.target.value })
               }
               required
             />
@@ -102,30 +119,35 @@ function AssignGrades() {
         </Form.Group>
         <Form.Group as={Row} className="mb-3">
           <Form.Label column sm={2}>
-            <h5>Course ID</h5>
+            <h5>Course Name</h5>
           </Form.Label>
           <Col sm={10}>
-            <Form.Control
-              type="text"
-              placeholder="Course ID"
-              value={grades.courseID}
-              onChange={(e) =>
-                setgrades({ ...grades, courseID: e.target.value })
-              }
-              required
-            />
+            <Form.Select
+              value={courses.selectedCourse}
+              onChange={(e) => {
+                setCourses({ ...courses, selectedCourse: e.target.value });
+                handleCourseChange(e); // Update courseID when course name changes
+              }}
+            >
+              <option value="">Select a course</option>
+              {courses.results.map((course) => (
+                <option key={course.id} value={course.name}>
+                  {course.name}
+                </option>
+              ))}
+            </Form.Select>
           </Col>
         </Form.Group>
         <Form.Group as={Row} className="mb-3 ">
           <Form.Label column sm={2}>
-            <h5>Grade </h5>
+            <h5>Grade</h5>
           </Form.Label>
           <Col sm={10}>
             <Form.Control
               type="text"
-              placeholder="grade"
+              placeholder="Grade"
               value={grades.grade}
-              onChange={(e) => setgrades({ ...grades, grade: e.target.value })}
+              onChange={(e) => setGrades({ ...grades, grade: e.target.value })}
               required
             />
           </Col>
@@ -136,10 +158,9 @@ function AssignGrades() {
             size="lg"
             type="submit"
             onClick={() => {
-              setTimeout(() => {
-                window.location.reload(true);
-              }, 2000); // Wait for 3 seconds (3000 milliseconds)
-              
+              // setTimeout(() => {
+              //   // window.location.reload(true);
+              // }, 2000); // Wait for 2 seconds before reloading
             }}
           >
             Register
@@ -154,4 +175,5 @@ function AssignGrades() {
     </div>
   );
 }
+
 export default AssignGrades;
