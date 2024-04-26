@@ -7,13 +7,20 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { getAuthUser } from "../helper/Storage";
-const auth = getAuthUser();
-function RegisterForm() {
+
+function RegisterForm({ courses }) {
+  const auth = getAuthUser();
   const navigate = useNavigate();
   const [selectedCourse, setSelectedCourse] = useState("");
   const [instructorId, setInstructorId] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState([]);
+  const [coursess, setCoursess] = useState({
+    loading: true,
+    results: [], // Initialize as an empty array
+    err: null,
+    reload: 0,
+  });
 
   const assignInstructor = (e) => {
     e.preventDefault();
@@ -30,12 +37,12 @@ function RegisterForm() {
       .post(
         "http://localhost:4000/admin/AssignInstructor",
         {
-          instructor_id: courses.instructor_id,
-          name: courses.name,
+          instructor_id: instructorId,
+          name: selectedCourse,
         },
         {
           headers: {
-            authorization: `Bearer__${auth.token}`,
+            token: auth.token,
             "Content-Type": "application/json",
           },
         }
@@ -48,12 +55,9 @@ function RegisterForm() {
         navigate("/AssigIns");
       })
       .catch((err) => {
-        setcourses({
-          ...courses,
-          loading: false,
-
-          err: "Something went wrong, please try again later !",
-        });
+        setLoading(false);
+        setErr(["Something went wrong, please try again later!"]);
+        console.error("Error assigning instructor:", err);
       });
   };
 
@@ -91,7 +95,7 @@ function RegisterForm() {
           <Col sm={10}>
             <Form.Select value={selectedCourse} onChange={handleCourseChange}>
               <option>Select Course</option>
-              {courses.map((course) => (
+              {coursess.results.map((course) => (
                 <option key={course.id} value={course.name}>
                   {course.name}
                 </option>
@@ -105,12 +109,7 @@ function RegisterForm() {
             className="btn btn-success"
             variant="primary"
             type="submit"
-            disabled={courses.loading === true}
-            onClick={() => {
-              setTimeout(() => {
-                window.location.reload(true);
-              }, 2000); // Wait for 3 seconds (3000 milliseconds)
-            }}
+            disabled={loading || !selectedCourse || !instructorId}
           >
             Submit
           </Button>
@@ -135,13 +134,7 @@ const ShowCourses = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:4000/admin/listCourse", {
-        headers: {
-          authorization: `Bearer__${auth.token}`,
-          "Content-Type": "application/json",
-        },
-      })
-
+      .get("http://localhost:4000/admin/listCourse")
       .then((resp) => {
         setCourses({
           ...courses,
@@ -171,17 +164,15 @@ const ShowCourses = () => {
             <tr>
               <th>ID</th>
               <th>Name</th>
-
               <th>Instructor</th>
             </tr>
           </thead>
           <tbody>
             {courses.results.map((course, key) => (
               <tr key={key} style={{ background: "white" }}>
-                <td>{Course.id}</td>
-                <td>{Course.name}</td>
-
-                <td>{Course.instructor_id}</td>
+                <td>{course.id}</td>
+                <td>{course.name}</td>
+                <td>{course.instructor_id}</td>
               </tr>
             ))}
           </tbody>

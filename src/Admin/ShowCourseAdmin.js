@@ -98,9 +98,7 @@ function RegisterForm() {
             type="submit"
             disabled={courses.loading === true}
             onClick={() => {
-              setTimeout(() => {
-                window.location.reload(true);
-              }, 2000); // Wait for 3 seconds (3000 milliseconds)
+              window.location.reload(true);
             }}
           >
             Submit
@@ -125,12 +123,7 @@ const ShowCourses = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:4000/admin/listCourse", {
-        headers: {
-          authorization: `Bearer__${auth.token}`,
-          "Content-Type": "application/json",
-        },
-      })
+      .get("http://localhost:4000/admin/listCourse")
 
       .then((resp) => {
         setcourses({
