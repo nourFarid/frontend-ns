@@ -3,6 +3,7 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Table from "react-bootstrap/Table";
+import { decryptData } from '../helper/encryptionAndDecryption';
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";import { useNavigate } from "react-router-dom";
@@ -127,12 +128,16 @@ const ShowInstructors = () => {
             </tr>
           </thead>
           {instructor.results.map((Instructors, key) => {
+              const decryptedName = decryptData(Instructors.name, Instructors.iv);
+              const decryptedEmail = decryptData(Instructors.email, Instructors.iv);
+              const decryptedPhone = decryptData(Instructors.phone, Instructors.iv);
+           
             return (
               <tr key={key} style={{ background: "white" }}>
                 <td>{Instructors.id}</td>
-                <td>{Instructors.name}</td>
-                <td>{Instructors.email}</td>
-                <td>{Instructors.phone}</td>
+                <td>{decryptedName}</td>
+                <td>{decryptedEmail}</td>
+                <td>{decryptedPhone}</td>
                
                 <td>
                   <button

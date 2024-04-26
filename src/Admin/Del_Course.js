@@ -8,6 +8,8 @@ import axios from "axios";
 //import { CourseDetails } from "../database";
 import { useNavigate } from "react-router-dom";
 import { getAuthUser } from "../helper/Storage";
+import { decryptData } from '../helper/encryptionAndDecryption';
+
 const auth = getAuthUser();
 function RegisterForm() {
   const navigate = useNavigate();
@@ -117,10 +119,12 @@ const ShowCourses = () => {
             </tr>
           </thead>
           {instructor.results.map((Instructors, key) => {
+             const decryptedName = decryptData(Instructors.name, Instructors.iv);
+
             return (
               <tr key={key} style={{ background: "white" }}>
                 <td>{Instructors.id}</td>
-                <td>{Instructors.name}</td>
+                <td>{decryptedName}</td>
         
                 <td>{Instructors.instructor_id}</td>
                 <td>

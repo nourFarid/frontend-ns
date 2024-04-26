@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { getAuthUser } from "../helper/Storage";
+import { decryptData } from '../helper/encryptionAndDecryption';
 const auth = getAuthUser();
 function RegisterForm() {
  
@@ -158,7 +159,7 @@ const ShowCourses = () => {
 
   useEffect(() => {
     setcourses({ ...courses, loading: true });
-    console.log("!!!!!!!!!!!!!!!!!!!!!!!");
+
     axios
       .get("http://localhost:4000/admin/listCourse",{
         headers: {
@@ -169,7 +170,7 @@ const ShowCourses = () => {
 
       .then((resp) => {
         console.log(resp);
-        console.log("1!!!!!!!!!!!!!!!!!!1");
+    
         setcourses({
           ...courses,
           results: resp.data,
@@ -202,10 +203,11 @@ const ShowCourses = () => {
             </tr>
           </thead>
           {courses.results.map((Course, key) => {
+            const decryptedName = decryptData(Course.name, Course.iv);
             return (
               <tr key={key} style={{ background: "white" }}>
                 <td>{Course.id}</td>
-                <td>{Course.name}</td>
+                <td>{decryptedName}</td>
               
                 <td>{Course.instructor_id
 }</td>
