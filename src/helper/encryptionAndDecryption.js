@@ -1,16 +1,16 @@
 import CryptoJS from 'crypto-js';
-
-// Define a fixed key (make sure to keep this secure and secret)
 const key = CryptoJS.enc.Hex.parse('00112233445566778899AABBCCDDEEFF');
 
-export const decryptName = (name, iv) => {
-    if (iv && name) {
-        const decryptedName = CryptoJS.TripleDES.decrypt({
-            ciphertext: CryptoJS.enc.Base64.parse(name),
-            key: key,
-            iv: CryptoJS.enc.Hex.parse(iv)
-        }).toString(CryptoJS.enc.Utf8);
-        return decryptedName;
+export const decryptData = (encryptedData, iv) => {
+    try {
+        const decrypted = CryptoJS.TripleDES.decrypt(
+            { ciphertext: CryptoJS.enc.Base64.parse(encryptedData) },
+            key,
+            { iv: CryptoJS.enc.Hex.parse(iv) }
+        );
+        return decrypted.toString(CryptoJS.enc.Utf8);
+    } catch (error) {
+        console.error("Decryption error:", error);
+        return null; // or throw an error, depending on your application's logic
     }
-    return name;
 };
