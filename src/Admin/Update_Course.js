@@ -4,6 +4,7 @@ import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Table from "react-bootstrap/Table";
 import React, { useEffect, useState } from "react";
+import { decryptData } from '../helper/encryptionAndDecryption';
 
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -172,7 +173,6 @@ const Update_Course = () => {
 
       .then((resp) => {
         console.log(resp);
-        console.log("1!!!!!!!!!!!!!!!!!!1");
         setcourses({
           ...courses,
           results: resp.data,
@@ -205,10 +205,12 @@ const Update_Course = () => {
             </tr>
           </thead>
           {courses.results.map((Course, key) => {
+             const decryptedName = decryptData(Course.name, Course.iv);
+           
             return (
               <tr key={key} style={{ background: "white" }}>
                 <td>{Course.id}</td>
-                <td>{Course.name}</td>
+                <td>{decryptedName}</td>
     
                 <td>{Course.instructor_id}</td>
               </tr>

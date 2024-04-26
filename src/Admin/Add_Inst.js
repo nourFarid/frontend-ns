@@ -6,8 +6,9 @@ import Table from "react-bootstrap/Table";
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { decryptData } from '../helper/encryptionAndDecryption';
 
-import { setAuthUser, getAuthUser } from "../helper/Storage";
+import {getAuthUser } from "../helper/Storage";
 const auth = getAuthUser();
 function RegisterForm() {
   const navigate = useNavigate();
@@ -187,7 +188,6 @@ function RegisterForm() {
             Delete
           </button>
 
-          {/* <button class="btn btn-danger">Click me (danger)</button> */}
           <br />
           <br />
 
@@ -257,18 +257,21 @@ const ShowInstructors = () => {
               <th>ID</th>
               <th>Name</th>
               <th>Email</th>
-              {/* <th>Password</th> */}
+             
               <th>Phone</th>
              
             </tr>
           </thead>
           {instructor.results.map((Instructors, key) => {
+             const decryptedName = decryptData(Instructors.name, Instructors.iv);
+             const decryptedEmail = decryptData(Instructors.email, Instructors.iv);
+             const decryptedPhone = decryptData(Instructors.phone, Instructors.iv);
             return (
               <tr key={key} style={{ background: "white" }}>
                 <td>{Instructors.id}</td>
-                <td>{Instructors.name}</td>
-                <td>{Instructors.email}</td>
-                <td>{Instructors.phone}</td>
+                <td>{decryptedName}</td>
+                <td>{decryptedEmail}</td>
+                <td>{decryptedPhone}</td>
               
               </tr>
             );
