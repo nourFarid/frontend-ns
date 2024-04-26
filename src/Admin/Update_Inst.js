@@ -269,13 +269,13 @@ const ShowInstructors = () => {
           </thead>
           {instructor.results.map((Instructors, key) => {
             const decryptedName = decryptData(Instructors.name, Instructors.iv);
-             const decryptedEmail = decryptData(Instructors.email, Instructors.iv);
+ 
              const decryptedPhone = decryptData(Instructors.phone, Instructors.iv);
             return (
               <tr key={key} style={{ background: "white" }}>
                 <td>{Instructors.id}</td>
                 <td>{decryptedName}</td>
-                <td>{decryptedEmail}</td>
+                <td>{Instructors.email}</td>
                 <td>{decryptedPhone}</td>
              
              

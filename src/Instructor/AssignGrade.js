@@ -5,7 +5,11 @@ import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Alert from "react-bootstrap/Alert";
 import axios from "axios";
+import { decryptData } from '../helper/encryptionAndDecryption';
 
+
+import {getAuthUser } from "../helper/Storage";
+const auth = getAuthUser();
 function AssignGrades() {
   const [grades, setGrades] = useState({
     grade: "",
@@ -24,14 +28,23 @@ function AssignGrades() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:4000/admin/listCourse")
+      .get("http://localhost:4000/admin/listCourse",{
+        headers: {
+          authorization:`Bearer__${auth.token}`,
+          "Content-Type": "application/json",
+        },
+      })
       .then((resp) => {
+        
         setCourses({
           ...courses,
           results: resp.data,
           loading: false,
           err: null,
         });
+        console.log('====================================');
+        console.log(courses.results);
+        console.log('====================================');
       })
       .catch((err) => {
         setCourses({
@@ -55,7 +68,7 @@ function AssignGrades() {
           courseID: grades.courseID, // Changed to courseID
         },
         {
-          headers: {
+          headers: {  authorization:`Bearer__${auth.token}`,
             "Content-Type": "application/json",
           },
         }
@@ -70,15 +83,17 @@ function AssignGrades() {
   };
 
   const handleCourseChange = (e) => {
-    const selectedCourse = e.target.value;
+    const selectedCourseName = e.target.value;
     const correspondingCourse = courses.results.find(
-      (course) => course.name === selectedCourse
+      (course) => decryptData(course.name, course.iv) === selectedCourseName
     );
     if (correspondingCourse) {
+      setCourses({ ...courses, selectedCourse: selectedCourseName });
       setGrades({ ...grades, courseID: correspondingCourse.id });
     }
   };
-
+  
+  
   return (
     <div style={{ backgroundImage: `url("e-learning.jpg")` }}>
       <Form
@@ -122,20 +137,26 @@ function AssignGrades() {
             <h5>Course Name</h5>
           </Form.Label>
           <Col sm={10}>
-            <Form.Select
-              value={courses.selectedCourse}
-              onChange={(e) => {
-                setCourses({ ...courses, selectedCourse: e.target.value });
-                handleCourseChange(e); // Update courseID when course name changes
-              }}
-            >
-              <option value="">Select a course</option>
-              {courses.results.map((course) => (
-                <option key={course.id} value={course.name}>
-                  {course.name}
-                </option>
-              ))}
-            </Form.Select>
+          <Form.Select
+  value={courses.selectedCourse}
+  onChange={(e) => {
+    setCourses({ ...courses, selectedCourse: e.target.value });
+    handleCourseChange(e); // Update courseID when course name changes
+  }}
+>
+  <option value="">Select a course</option>
+  {Array.isArray(courses.results) &&
+    courses.results.map((course) => {
+      const decryptedName = decryptData(course.name, course.iv);
+
+      return (
+        <option key={course.id} value={decryptedName}>
+          {decryptedName}
+        </option>
+      );
+    })}
+</Form.Select>
+
           </Col>
         </Form.Group>
         <Form.Group as={Row} className="mb-3 ">

@@ -135,12 +135,12 @@ const EnrolledStudents = () => {
               <Form.Label>COURSE NAME:</Form.Label>
               <Form.Select value={selectedCourse} onChange={handleCourseChange}>
                 <option value="">Select a course</option>
-                {courses.results &&
-                  courses.results.map((course) => (
-                    <option key={course.id} value={course.id}>
-                      {course.name}
-                    </option>
-                  ))}
+                {Array.isArray(courses.results) && courses.results.map((course) => (
+  <option key={course.id} value={course.id}>
+    {course.name}
+  </option>
+))}
+
               </Form.Select>
             </Form.Group>
             <Button
