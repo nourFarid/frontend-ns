@@ -1,13 +1,15 @@
-import Button from "react-bootstrap/Button";
-import Col from "react-bootstrap/Col";
-import Form from "react-bootstrap/Form";
-import Row from "react-bootstrap/Row";
-import React, { useState } from "react";
-import Alert from "react-bootstrap/Alert";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { getAuthUser } from "../helper/Storage";
+import { Button, Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
- const auth = getAuthUser();
+import { getAuthUser } from "../helper/Storage";
+import Alert from "react-bootstrap/Alert";
+import Col from "react-bootstrap/Col";
+import Row from "react-bootstrap/Row";
+
+var id;
+const auth = getAuthUser();
+
 function Alertt() {
   return (
     <div className="alertt">
@@ -19,6 +21,7 @@ function Alertt() {
     </div>
   );
 }
+
 function Heading() {
   return (
     <div className="heading p-4">
@@ -26,47 +29,91 @@ function Heading() {
     </div>
   );
 }
-function RegisterForm() {
+
+function RegisterForm({ studentID }) {
   const navigate = useNavigate();
- 
 
   const [courses, setCourses] = useState({
-    studentID: auth.id,
-    courseID: "",
+    selectedCourseID: "",
+    selectedSemester: "",
+    results: [],
     err: [],
     loading: false,
+    studentID: studentID,
   });
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:4000/admin/listCourse")
+      .then((resp) => {
+        setCourses({
+          ...courses,
+          results: resp.data,
+          loading: false,
+          err: null,
+        });
+      })
+      .catch((err) => {
+        setCourses({
+          ...courses,
+          loading: false,
+          err: "Something went wrong, please try again later!",
+        });
+      });
+  }, []);
+
+  id = courses.selectedCourseID;
 
   const handleRegister = (e) => {
     e.preventDefault();
     setCourses({ ...courses, loading: true, err: [] });
-    console.log(courses);
     axios
-      .post("http://localhost:4000/student/registerCourse", {
-        studentID: auth.id,
-        courseID: courses.courseID,
-       
-      },{
-        headers: {
-          authorization:`Bearer__${auth.token}`,
-          "Content-Type": "application/json",
+      .post(
+        "http://localhost:4000/student/registerCourse",
+        {
+          courseID: id,
+          studentID: auth.id,
         },
-      }
-)
-
+        {
+          headers: {
+            authorization: `Bearer__${auth.token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      )
       .then((res) => {
         setCourses({
           ...courses,
           courseID: "",
+          studentID: "",
         });
         console.log(res);
         setCourses({ ...courses, loading: false, err: [] });
-      
         navigate("/register");
-      }, navigate("/register"))
+      })
       .catch((err) => {
-        setCourses({ ...courses, loading: false, err: "No grades available" });
+        console.log(err);
+        setCourses({ ...courses, loading: false, err: "No Courses available" });
       });
+  };
+
+  const handleCourseChange = (e) => {
+    const selectedCourseName = e.target.value;
+    const correspondingCourse = courses.results.find(
+      (course) => course.name === selectedCourseName
+    );
+    if (correspondingCourse) {
+      setCourses({
+        ...courses,
+        selectedCourseID: selectedCourseName,
+        selectedCourseID: correspondingCourse.id,
+      });
+    }
+  };
+
+  const handleSemesterChange = (e) => {
+    const selectedSemester = e.target.value;
+    setCourses({ ...courses, selectedSemester: selectedSemester });
   };
 
   return (
@@ -85,44 +132,39 @@ function RegisterForm() {
         <Alertt />
         <Form.Group className="mb-3">
           <Form.Label>
-            <h5>Choose Semster</h5>
+            <h5>Choose Semester</h5>
           </Form.Label>
-          <Form.Select>
+          <Form.Select onChange={handleSemesterChange}>
             <option>select</option>
             <option>Winter 2022</option>
             <option>Fall 2023</option>
             <option>Summer 2022</option>
           </Form.Select>
         </Form.Group>
-        
+
         <Form.Group as={Row} className="mb-3">
           <Form.Label column sm={2}>
-            <h5>Course ID</h5>
+            <h5>Course Name</h5>
           </Form.Label>
           <Col sm={10}>
-            <Form.Control
-              type="text"
-              placeholder="Course ID"
-              value={courses.courseID}
-              onChange={(e) =>
-                setCourses({ ...courses, courseID: e.target.value })
-              }
-              required
-            />
+            <Form.Select
+              value={courses.selectedCourse}
+              onChange={(e) => {
+                setCourses({ ...courses, selectedCourse: e.target.value });
+                handleCourseChange(e);
+              }}
+            >
+              <option value="">Select a course</option>
+              {courses.results.map((course) => (
+                <option key={course.id} value={course.name}>
+                  {course.name}
+                </option>
+              ))}
+            </Form.Select>
           </Col>
         </Form.Group>
         <div className="mb-2">
-          <Button
-            variant="primary"
-            size="lg"
-            type="submit"
-            onClick={() => {
-              setTimeout(() => {
-                window.location.reload(true);
-              }, 2000); // Wait for 3 seconds (3000 milliseconds)
-              
-            }}
-          >
+          <Button variant="primary" size="lg" type="submit">
             Register
           </Button>
           <div className=" p-3"></div>
