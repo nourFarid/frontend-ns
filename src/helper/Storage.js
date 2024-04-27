@@ -1,28 +1,61 @@
-export const setAuthUser = (data,sessionData) => {
-  localStorage.setItem("user", JSON.stringify(data));
-  // localStorage.setItem("session", JSON.stringify(sessionData));
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+
+export const setAuthUser = (data, expiresInMinutes=1) => {
+  const expirationTime = new Date().getTime() + expiresInMinutes * 60 * 1000;
+  sessionStorage.setItem("user", JSON.stringify({ data, expirationTime }));
 };
+
 
 
 // export const getAuthUser = () => {
-//   if (localStorage.getItem("user")) {
-//     return {
-//       user: JSON.parse(localStorage.getItem("user")),
-//       session: JSON.parse(localStorage.getItem("session"))
-//     };
+ 
+//   if (sessionStorage.getItem("user")) {
+//     return JSON.parse(sessionStorage.getItem("user"));
 //   }
-//   return null;
-// };
 
 
-export const getAuthUser = (data) => {
-  if (localStorage.getItem("user")) {
-    return JSON.parse(localStorage.getItem("user"));
-  }
-};
+
+
 export const removeAuthUser = () => {
-  if (localStorage.getItem("user")) {
-    localStorage.removeItem("user");
-    // localStorage.removeItem("session");
+
+
+  if (sessionStorage.getItem("user")) {
+    sessionStorage.removeItem("user");
+    window.location.href = "/"; 
   }
+
 };
+
+export const getAuthUser = () => {
+  
+
+  const userData = JSON.parse(sessionStorage.getItem("user"));
+  if (userData && new Date().getTime() < userData.expirationTime) {
+    return userData.data;
+  }
+  // sessionStorage.removeItem("user");
+  removeAuthUser()
+   return null;
+};
+// axios.interceptors.response.use(
+//   (response) => {
+//     const newToken = response.headers.authorization;
+//     console.log('=======new token=============================');
+//     console.log(newToken);
+//     console.log('====================================');
+//     if (newToken && newToken.startsWith("Bearer")) {
+//       const token = newToken.split("Bearer ")[1];
+//       // Update the session storage with the new token
+//       setAuthUser({ token });
+//       console.log('TOKEN====================================');
+//       console.log(token);
+//       console.log('====================================');
+      
+//     }
+//     return response;
+//   },
+//   (error) => {
+//     return Promise.reject(error);
+//   }
+// );
