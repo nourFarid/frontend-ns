@@ -8,7 +8,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { decryptData } from '../helper/encryptionAndDecryption';
 import {CheckExpired} from "../helper/test"
-
+import '../helper/Storage'
 import {getAuthUser } from "../helper/Storage";
 const auth = getAuthUser();
 function RegisterForm() {
@@ -218,7 +218,7 @@ const ShowInstructors = () => {
   });
 
   useEffect(() => {
-    // CheckExpired()
+
 
     setInstructor({ ...instructor, loading: true });
 
