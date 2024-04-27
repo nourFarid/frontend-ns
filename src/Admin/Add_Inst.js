@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { decryptData } from '../helper/encryptionAndDecryption';
+import {CheckExpired} from "../helper/test"
 
 import {getAuthUser } from "../helper/Storage";
 const auth = getAuthUser();
@@ -217,6 +218,8 @@ const ShowInstructors = () => {
   });
 
   useEffect(() => {
+    // CheckExpired()
+
     setInstructor({ ...instructor, loading: true });
 
     axios

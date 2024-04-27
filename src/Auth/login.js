@@ -8,9 +8,6 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { Alert } from "react-bootstrap";
 function Login() {
-  // const token = "c8dcbae90fa60d2a48b3a071a5749528" ;
-  // const headers = {
-  //     'token': token };
   const navigate = useNavigate();
   const [login, setlogin] = useState({
     email: "",
@@ -35,7 +32,8 @@ function Login() {
       .then((res) => {
         console.log(res);
         setlogin({ ...login, loading: false, err: [] });
-        setAuthUser(res.data);
+        // setAuthUser(res.data);
+        setAuthUser(res.data.user);
         navigate("/home");
       })
       .catch((errors) => {
