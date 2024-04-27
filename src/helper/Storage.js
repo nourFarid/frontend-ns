@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-export const setAuthUser = (data, expiresInMinutes=1) => {
+export const setAuthUser = (data, expiresInMinutes=60) => {
   const expirationTime = new Date().getTime() + expiresInMinutes * 60 * 1000;
   sessionStorage.setItem("user", JSON.stringify({ data, expirationTime }));
 };
@@ -22,7 +22,7 @@ export const removeAuthUser = () => {
 
   if (sessionStorage.getItem("user")) {
     sessionStorage.removeItem("user");
-    window.location.href = "/"; 
+    window.location.href = "/login"; 
   }
 
 };
