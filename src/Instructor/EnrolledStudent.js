@@ -4,6 +4,8 @@ import axios from "axios";
 import { Button, Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { Schedule } from "../shared/schedule";
+import { decryptData } from "../helper/encryptionAndDecryption";
+
 import { getAuthUser } from "../helper/Storage";
 const auth = getAuthUser();
 
@@ -57,24 +59,30 @@ const EnrolledStudents = () => {
       });
   }, []);
 
-  const listInstructors = () => {
+  const listInstructors = (courseId) => { // Accept courseId parameter
     setInstructor({ ...instructor, loading: true });
     axios
-      .get(`http://localhost:4000/instructor/list/${selectedCourseID}`, {
+      .get(`http://localhost:4000/instructor/list/${courseId}`, { // Use courseId instead of selectedCourseID
         headers: {
           authorization: `Bearer__${auth.token}`,
           "Content-Type": "application/json",
         },
       })
       .then((resp) => {
+        console.log('====================================');
+        console.log(courseId); // Use courseId instead of selectedCourseID
+        console.log('====================================');
         console.log(resp.data);
         setInstructor({
           loading: false,
-          results: resp.data.results || [], // Assuming data structure has a 'results' key
+          results: resp.data || [], // Assuming data structure has a 'results' key
           err: null,
         });
       })
       .catch((err) => {
+        console.log('====================================');
+        console.log(courseId); // Use courseId instead of selectedCourseID
+        console.log('====================================');
         setInstructor({
           loading: false,
           results: [],
@@ -83,17 +91,19 @@ const EnrolledStudents = () => {
         console.log(err);
       });
   };
+  
 
   const handleCourseChange = (event) => {
     const selectedCourseId = event.target.value;
     const selectedCourseName =
       event.target.options[event.target.selectedIndex].text;
     setSelectedCourse(selectedCourseId);
-    setSelectedCourseName(selectedCourseName); // Update selected course name
-    setSelectedCourseID(selectedCourseId); // Set SelectedCourseID
-    // Call listInstructors to fetch data for the selected course
-    listInstructors();
+    setSelectedCourseName(selectedCourseName);
+    listInstructors(selectedCourseId); // Pass the selectedCourseId directly to listInstructors
   };
+  
+
+  
 
   return (
     <div
@@ -114,25 +124,32 @@ const EnrolledStudents = () => {
               </tr>
             </thead>
             <tbody>
-              {instructor.loading ? (
-                <tr>
-                  <td colSpan="3">Loading...</td>
-                </tr>
-              ) : instructor.results.length === 0 ? (
-                <tr>
-                  <td colSpan="3">No data available</td>
-                </tr>
-              ) : (
-                instructor.results.map((inst, key) => (
-                  <tr key={key} style={{ background: "white" }}>
-                    <td>{inst.id}</td>
-                    <td>{inst.student_name}</td>
-                    <td>{selectedCourseName || "No course selected"}</td>{" "}
-                    {/* Display selected course name */}
-                  </tr>
-                ))
-              )}
-            </tbody>
+  {instructor.loading ? (
+    <tr>
+      <td colSpan="3">Loading...</td>
+    </tr>
+  ) : instructor.results.length === 0 ? (
+    <tr>
+      <td colSpan="3">No data available</td>
+    </tr>
+  ) : (
+    instructor.results.map((inst, key) => {
+  const decryptedName = decryptData(inst.student_name, inst.iv);
+  const decryptedNameCourse = decryptData(inst.course_name, inst.course_iv);
+  console.log('Decrypted Name:', decryptedName); // Add this line for debugging
+
+  return (
+    <tr key={key} style={{ background: "white" }}>
+      <td>{inst.id}</td>
+      <td>{decryptedName}</td>
+      <td>{decryptedNameCourse || "No course selected"}</td>
+    </tr>
+  );
+})
+
+  )}
+</tbody>
+
           </Table>
         </div>
         <div>
@@ -140,13 +157,17 @@ const EnrolledStudents = () => {
             <Form.Group controlId="courseSelect">
               <Form.Label>COURSE NAME:</Form.Label>
               <Form.Select value={selectedCourse} onChange={handleCourseChange}>
-                <option value="">Select a course</option>
-                {Array.isArray(courses.results) && courses.results.map((course) => (
-  <option key={course.id} value={course.id}>
-    {course.name}
-  </option>
-))}
+              <option value="">Select a course</option>
+                 {Array.isArray(courses.results) &&
+    courses.results.map((course) => {
+      const decryptedName = decryptData(course.name, course.iv);
 
+      return (
+        <option key={course.id} value={course.id}>
+          {decryptedName}
+        </option>
+      );
+    })}
               </Form.Select>
             </Form.Group>
             <Button

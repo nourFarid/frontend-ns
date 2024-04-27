@@ -6,6 +6,7 @@ import { getAuthUser } from "../helper/Storage";
 import Alert from "react-bootstrap/Alert";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
+import { decryptData } from "../helper/encryptionAndDecryption";
 
 var id;
 const auth = getAuthUser();
@@ -46,6 +47,9 @@ function RegisterForm({ studentID }) {
     axios
       .get("http://localhost:4000/admin/listCourse")
       .then((resp) => {
+        console.log('then====================================');
+        console.log(resp.data);
+        console.log('====================================');
         setCourses({
           ...courses,
           results: resp.data,
@@ -54,6 +58,9 @@ function RegisterForm({ studentID }) {
         });
       })
       .catch((err) => {
+        console.log('errrr====================================');
+        console.log(courses.results);
+        console.log('====================================');
         setCourses({
           ...courses,
           loading: false,
@@ -63,7 +70,9 @@ function RegisterForm({ studentID }) {
   }, []);
 
   id = courses.selectedCourseID;
-
+console.log('====================================');
+console.log(id);
+console.log('====================================');
   const handleRegister = (e) => {
     e.preventDefault();
     setCourses({ ...courses, loading: true, err: [] });
@@ -98,18 +107,18 @@ function RegisterForm({ studentID }) {
   };
 
   const handleCourseChange = (e) => {
-    const selectedCourseName = e.target.value;
-    const correspondingCourse = courses.results.find(
-      (course) => course.name === selectedCourseName
-    );
-    if (correspondingCourse) {
+    const selectedCourseId = e.target.value;
+    const selectedCourse = courses.results.find(course => course.id === selectedCourseId);
+    if (selectedCourse) {
+      const decryptedName = decryptData(selectedCourse.name, selectedCourse.iv);
+      id = decryptedName;
       setCourses({
         ...courses,
-        selectedCourseID: selectedCourseName,
-        selectedCourseID: correspondingCourse.id,
+        selectedCourseID: selectedCourse.id,
       });
     }
   };
+  
 
   const handleSemesterChange = (e) => {
     const selectedSemester = e.target.value;
@@ -148,18 +157,30 @@ function RegisterForm({ studentID }) {
           </Form.Label>
           <Col sm={10}>
             <Form.Select
-              value={courses.selectedCourse}
+              value={courses.selectedCourseId}
               onChange={(e) => {
-                setCourses({ ...courses, selectedCourse: e.target.value });
-                handleCourseChange(e);
+            
+                const selectedCourseId = e.target.value;
+                console.log('====================================');
+                console.log(selectedCourseId);
+                console.log('====================================');
+                id=selectedCourseId;
+                const selectedCourse = courses.results.find(
+                  (course) => course.id === selectedCourseId
+                );
               }}
             >
               <option value="">Select a course</option>
-              {courses.results.map((course) => (
-                <option key={course.id} value={course.name}>
-                  {course.name}
-                </option>
-              ))}
+              {Array.isArray(courses.results) &&
+    courses.results.map((course) => {
+      const decryptedName = decryptData(course.name, course.iv);
+
+      return (
+        <option key={course.id} value={course.id}>
+          {decryptedName}
+        </option>
+      );
+    })}
             </Form.Select>
           </Col>
         </Form.Group>
