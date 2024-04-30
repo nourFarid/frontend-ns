@@ -33,7 +33,7 @@ function Login() {
         console.log(res);
         setlogin({ ...login, loading: false, err: [] });
         // setAuthUser(res.data);
-        setAuthUser(res.data.user);
+        setAuthUser(res.data);
         navigate("/home");
       })
       .catch((errors) => {

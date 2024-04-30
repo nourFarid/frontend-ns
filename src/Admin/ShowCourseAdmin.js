@@ -98,7 +98,8 @@ function RegisterForm() {
               setTimeout(() => {
                 window.location.reload(true);
               }, 2000); // Wait for 3 seconds (3000 milliseconds)
-            }}
+            }
+          }
           >
             submit
           </Button>
